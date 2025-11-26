@@ -1,16 +1,13 @@
 {
   "files": {
-    "main.css": "/lich-van-nien/static/css/main.f855e6bc.css",
-    "main.js": "/lich-van-nien/static/js/main.269197c0.js",
-    "static/js/453.68602b1b.chunk.js": "/lich-van-nien/static/js/453.68602b1b.chunk.js",
-    "static/media/logo.svg": "/lich-van-nien/static/media/logo.6ce24c58023cc2f8fd88fe9d219db6c6.svg",
+    "main.css": "/lich-van-nien/static/css/main.488727b4.css",
+    "main.js": "/lich-van-nien/static/js/main.e517203b.js",
     "index.html": "/lich-van-nien/index.html",
-    "main.f855e6bc.css.map": "/lich-van-nien/static/css/main.f855e6bc.css.map",
-    "main.269197c0.js.map": "/lich-van-nien/static/js/main.269197c0.js.map",
-    "453.68602b1b.chunk.js.map": "/lich-van-nien/static/js/453.68602b1b.chunk.js.map"
+    "main.488727b4.css.map": "/lich-van-nien/static/css/main.488727b4.css.map",
+    "main.e517203b.js.map": "/lich-van-nien/static/js/main.e517203b.js.map"
   },
   "entrypoints": [
-    "static/css/main.f855e6bc.css",
-    "static/js/main.269197c0.js"
+    "static/css/main.488727b4.css",
+    "static/js/main.e517203b.js"
   ]
 }
