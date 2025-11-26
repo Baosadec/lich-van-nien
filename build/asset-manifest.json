@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/lich-van-nien/static/css/main.488727b4.css",
+    "main.js": "/lich-van-nien/static/js/main.e517203b.js",
+    "index.html": "/lich-van-nien/index.html",
+    "main.488727b4.css.map": "/lich-van-nien/static/css/main.488727b4.css.map",
+    "main.e517203b.js.map": "/lich-van-nien/static/js/main.e517203b.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.488727b4.css",
+    "static/js/main.e517203b.js"
+  ]
+}
