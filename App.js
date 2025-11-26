@@ -1,294 +1,189 @@
-import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, Sun, Moon } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Hàm tính lịch âm (Lưu ý: Thuật toán này là đơn giản hóa và không chính xác hoàn toàn cho Lịch Vạn Niên Việt Nam)
+// Hàm đơn giản hóa chuyển đổi lịch Âm (chỉ mang tính minh họa)
+// LƯU Ý: Chuyển đổi lịch Âm chính xác rất phức tạp và cần thư viện chuyên biệt.
+// Đoạn code này chỉ là mô phỏng để có nội dung hiển thị.
 const getLunarDate = (date) => {
-  // Lấy Julian Day (JD) cho ngày dương lịch
-  const time = date.getTime();
-  // JD của 01/01/1970 00:00:00 GMT là 2440587.5
-  // Số mili giây/ngày: 86400000
-  // Đã bù trừ 7 giờ (Việt Nam) trong hằng số này
-  const jd = Math.floor((time / 86400000) + 2440587.5);
-  
-  // Các hằng số cho thuật toán đơn giản
-  const JD_EPOCH = 2415021.076998695; // Khoảng JD của một ngày âm lịch tham chiếu
-  const SYNODIC_MONTH = 29.530588853; // Độ dài trung bình của một tháng âm lịch
+  const day = date.getDate();
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
 
-  const k = Math.floor((jd - JD_EPOCH) / SYNODIC_MONTH);
-  const monthStart = Math.floor(JD_EPOCH + k * SYNODIC_MONTH);
-  
-  // Tính ngày âm lịch
-  const lunarDay = jd - monthStart + 1;
-  
-  // Tính tháng âm lịch (chỉ là giá trị tương đối, không chính xác tháng nhuận)
-  // Lấy giá trị từ 1 đến 12 (12 tháng âm lịch trong chu kỳ 1 năm)
-  let lunarMonth = ((k + 1) % 12) + 1;
-  if (lunarMonth > 12) lunarMonth -= 12;
+  // Tạo một key duy nhất cho ngày
+  const key = `${year}-${month}-${day}`;
 
-  // Tính năm âm lịch (thường dùng để xác định Can Chi)
-  // Đây là cách tính gần đúng, không dựa trên ngày Sóc/Lập Xuân
-  let lunarYear = Math.floor(date.getFullYear() - 1 + (lunarMonth / 13)); 
+  // Dữ liệu mô phỏng: Lịch Âm đơn giản
+  const mockLunarData = {
+    // 26/11/2025 (Ngày 26 tháng 11 Dương lịch)
+    '2025-11-26': { lunarDay: 6, lunarMonth: 10, lunarYear: 2025, canChi: 'Giáp Thìn' },
+    // Dữ liệu mô phỏng một vài ngày khác
+    '2025-11-25': { lunarDay: 5, lunarMonth: 10, lunarYear: 2025, canChi: 'Quý Mão' },
+    '2025-11-27': { lunarDay: 7, lunarMonth: 10, lunarYear: 2025, canChi: 'Ất Tỵ' },
+    '2025-11-28': { lunarDay: 8, lunarMonth: 10, lunarYear: 2025, canChi: 'Bính Ngọ' },
+    '2025-11-29': { lunarDay: 9, lunarMonth: 10, lunarYear: 2025, canChi: 'Đinh Mùi' },
+    '2025-11-30': { lunarDay: 10, lunarMonth: 10, lunarYear: 2025, canChi: 'Mậu Thân' },
+    '2025-12-1': { lunarDay: 11, lunarMonth: 10, lunarYear: 2025, canChi: 'Kỷ Dậu' },
+  };
 
-  return { day: Math.floor(lunarDay), month: lunarMonth, year: lunarYear };
-};
+  const data = mockLunarData[key];
 
-// Lấy Can Chi năm
-const getCanChi = (year) => {
-  const can = ['Canh', 'Tân', 'Nhâm', 'Quý', 'Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ'];
-  const chi = ['Thân', 'Dậu', 'Tuất', 'Hợi', 'Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi'];
-  // Năm âm lịch tính từ năm 1984 (Giáp Tý)
-  const baseYear = 1984; 
-  const offset = year - baseYear;
-  
-  const canIndex = (offset % 10 + 10) % 10;
-  const chiIndex = (offset % 12 + 12) % 12;
+  if (data) {
+    return {
+      day: data.lunarDay,
+      month: data.lunarMonth,
+      canChi: data.canChi,
+    };
+  }
 
-  return can[canIndex] + ' ' + chi[chiIndex];
-};
-
-// Lấy tên con giáp (12 con giáp)
-const getZodiac = (year) => {
-  const zodiacs = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'];
-  // Dùng năm dương lịch để tính con giáp, đơn giản hóa cho UI
-  return zodiacs[(year - 4) % 12];
+  // Fallback cho các ngày không có dữ liệu mô phỏng
+  const randomDay = (day % 29) + 1;
+  const randomMonth = (month % 12) + 1;
+  return {
+    day: randomDay,
+    month: randomMonth,
+    canChi: ['Giáp Tý', 'Ất Sửu', 'Bính Dần', 'Đinh Mão'][randomDay % 4],
+  };
 };
 
 // Component chính
-const App = () => {
+function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [showLunar, setShowLunar] = useState(true);
 
-  // Helper functions
-  const daysInMonth = (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-  
-  // 0: Chủ Nhật, 1: Thứ Hai, ..., 6: Thứ Bảy
-  const firstDayOfMonth = (date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  const currentMonth = currentDate.getMonth();
+  const currentYear = currentDate.getFullYear();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); // 0 = Sunday, 1 = Monday
 
-  const generateCalendarDays = () => {
-    const days = [];
-    const totalDays = daysInMonth(currentDate);
-    // Lấy thứ của ngày đầu tiên trong tháng (0 = CN, 1 = T2, ...)
-    const firstDay = firstDayOfMonth(currentDate);
-    const prevMonthDays = daysInMonth(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
-
-    // Ngày tháng trước (tô xám)
-    for (let i = firstDay - 1; i >= 0; i--) {
-      days.push({
-        day: prevMonthDays - i,
-        isCurrentMonth: false,
-        date: new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, prevMonthDays - i)
-      });
-    }
-
-    // Ngày tháng hiện tại
-    for (let i = 1; i <= totalDays; i++) {
-      days.push({
-        day: i,
-        isCurrentMonth: true,
-        date: new Date(currentDate.getFullYear(), currentDate.getMonth(), i)
-      });
-    }
-
-    // Ngày tháng sau (tô xám) - Đảm bảo lịch luôn có 6 hàng (42 ô)
-    const remainingDays = 42 - days.length;
-    for (let i = 1; i <= remainingDays; i++) {
-      days.push({
-        day: i,
-        isCurrentMonth: false,
-        date: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, i)
-      });
-    }
-
-    return days;
-  };
-
-  const isToday = (date) => {
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
-  };
-
-  const isSelected = (date) => {
-    return date.toDateString() === selectedDate.toDateString();
-  };
-
-  const changeMonth = (delta) => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + delta, 1));
-  };
-  
-  const goToToday = () => {
-    const today = new Date();
-    setCurrentDate(today);
-    setSelectedDate(today);
-  };
-
-  const weekDays = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
   const monthNames = [
     'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
     'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
   ];
+  const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
-  // Lấy thông tin lịch âm cho ngày được chọn
-  const lunar = getLunarDate(selectedDate);
-  const canChi = getCanChi(selectedDate.getFullYear()); // Dùng dương lịch để tính Can Chi năm cho đơn giản
-  const zodiac = getZodiac(selectedDate.getFullYear());
+  // Logic chuyển tháng
+  const handlePrevMonth = () => {
+    setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
+  };
+
+  // Tạo mảng ngày cho lịch
+  const calendarDays = useMemo(() => {
+    const days = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Thêm ngày trống đầu tháng
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      days.push({ day: null, isCurrentMonth: false });
+    }
+
+    // Thêm ngày trong tháng
+    for (let i = 1; i <= daysInMonth; i++) {
+      const date = new Date(currentYear, currentMonth, i);
+      date.setHours(0, 0, 0, 0);
+      const isToday = date.getTime() === today.getTime();
+      const lunar = getLunarDate(date);
+
+      days.push({
+        day: i,
+        isCurrentMonth: true,
+        isToday,
+        isWeekend: date.getDay() === 0 || date.getDay() === 6,
+        lunarDay: lunar.day,
+        lunarMonth: lunar.month,
+        canChi: lunar.canChi,
+      });
+    }
+
+    return days;
+  }, [currentYear, currentMonth, daysInMonth, firstDayOfMonth]);
+
+
+  // Hàm render ô ngày
+  const renderDayCell = (dayObj, index) => {
+    if (!dayObj.day) {
+      return <div key={`empty-${index}`} className="p-1 h-20 sm:h-24"></div>;
+    }
+
+    const dayClass = dayObj.isToday
+      ? 'bg-red-500 text-white shadow-lg font-bold'
+      : dayObj.isWeekend
+        ? 'text-red-600 dark:text-red-400'
+        : 'text-gray-800 dark:text-gray-200';
+
+    return (
+      <div
+        key={dayObj.day}
+        className={`p-1 border border-gray-200 dark:border-gray-700 rounded-lg h-20 sm:h-24 transition duration-150 ease-in-out hover:bg-indigo-50 dark:hover:bg-gray-700 cursor-pointer flex flex-col justify-start items-start`}
+      >
+        {/* Ngày Dương Lịch */}
+        <div className={`text-lg sm:text-xl leading-none ${dayClass}`}>
+          {dayObj.day}
+        </div>
+        {/* Ngày Âm Lịch */}
+        <div className={`text-xs sm:text-sm mt-1 leading-none ${dayObj.isToday ? 'text-white' : 'text-indigo-600 dark:text-indigo-400 font-semibold'}`}>
+          {dayObj.lunarDay}
+        </div>
+        {/* Chi tiết Âm Lịch (Can Chi) */}
+        <div className={`text-[10px] sm:text-xs leading-none mt-1 ${dayObj.isToday ? 'text-gray-100' : 'text-gray-500 dark:text-gray-400'}`}>
+          {dayObj.canChi}
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-8 font-sans">
-      <div className="max-w-4xl mx-auto">
-        {/* Header and Info Card */}
-        <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-8 mb-6 border-t-4 border-purple-500">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <Calendar className="w-8 h-8 text-purple-600" />
-              <h1 className="text-3xl font-extrabold text-gray-800">Lịch Vạn Niên</h1>
-            </div>
-            <button
-              onClick={() => setShowLunar(!showLunar)}
-              className="mt-4 sm:mt-0 flex items-center gap-2 px-4 py-2 bg-pink-100 text-pink-700 rounded-full font-medium hover:bg-pink-200 transition shadow-md"
-            >
-              {showLunar ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-              {showLunar ? 'Ẩn Lịch Âm' : 'Hiện Lịch Âm'}
-            </button>
-          </div>
-          
-          {/* Thông tin lịch âm ngày được chọn */}
-          {showLunar && (
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4 sm:p-6 shadow-inner mt-4">
-              <p className="text-xl font-bold text-gray-700 mb-2">
-                Ngày Dương: {selectedDate.toLocaleDateString('vi-VN', { 
-                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
-                })}
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t pt-3 border-purple-200">
-                <div className="p-2 bg-white rounded-lg shadow-sm">
-                  <p className="text-sm text-gray-500">Âm lịch</p>
-                  <p className="text-lg font-bold text-purple-700">
-                    Ngày {lunar.day} tháng {lunar.month}
-                  </p>
-                </div>
-                <div className="p-2 bg-white rounded-lg shadow-sm">
-                  <p className="text-sm text-gray-500">Năm Âm</p>
-                  <p className="text-lg font-bold text-purple-700">
-                    {lunar.year}
-                  </p>
-                </div>
-                <div className="p-2 bg-white rounded-lg shadow-sm">
-                  <p className="text-sm text-gray-500">Can Chi (Năm)</p>
-                  <p className="text-lg font-bold text-purple-700">
-                    {canChi} ({zodiac})
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 sm:p-8 flex justify-center items-center font-sans">
+      <div className="w-full max-w-5xl bg-white dark:bg-gray-800 shadow-2xl rounded-xl p-4 sm:p-6 lg:p-8">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+          <button
+            onClick={handlePrevMonth}
+            className="p-2 rounded-full text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-gray-700 transition"
+            aria-label="Tháng trước"
+          >
+            <ChevronLeft size={24} />
+          </button>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white select-none">
+            {monthNames[currentMonth]} {currentYear}
+          </h1>
+          <button
+            onClick={handleNextMonth}
+            className="p-2 rounded-full text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-gray-700 transition"
+            aria-label="Tháng sau"
+          >
+            <ChevronRight size={24} />
+          </button>
         </div>
 
-        {/* Calendar Grid */}
-        <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-8">
-          {/* Navigation */}
-          <div className="flex items-center justify-between mb-6">
-            <button
-              onClick={() => changeMonth(-1)}
-              className="p-3 bg-gray-100 hover:bg-gray-200 rounded-full transition shadow-md"
-              aria-label="Tháng trước"
+        {/* Bảng Ngày */}
+        <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center text-sm font-semibold mb-3">
+          {dayNames.map(name => (
+            <div
+              key={name}
+              className={`py-2 rounded-lg ${name === 'CN' ? 'text-red-500' : 'text-gray-600 dark:text-gray-300'}`}
             >
-              <ChevronLeft className="w-6 h-6 text-gray-600" />
-            </button>
-            
-            <h2 className="text-2xl font-bold text-gray-800 tracking-wider">
-              {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-            </h2>
-            
-            <button
-              onClick={() => changeMonth(1)}
-              className="p-3 bg-gray-100 hover:bg-gray-200 rounded-full transition shadow-md"
-              aria-label="Tháng sau"
-            >
-              <ChevronRight className="w-6 h-6 text-gray-600" />
-            </button>
-          </div>
+              {name}
+            </div>
+          ))}
+        </div>
 
-          {/* Week days */}
-          <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2">
-            {weekDays.map((day, i) => (
-              <div
-                key={i}
-                className={`text-center font-bold py-2 text-sm sm:text-base rounded-lg ${
-                  i === 0 ? 'text-red-500' : 'text-gray-600'
-                }`}
-              >
-                {day}
-              </div>
-            ))}
-          </div>
+        {/* Lịch */}
+        <div className="grid grid-cols-7 gap-1 sm:gap-2">
+          {calendarDays.map(renderDayCell)}
+        </div>
 
-          {/* Calendar days */}
-          <div className="grid grid-cols-7 gap-1 sm:gap-2">
-            {generateCalendarDays().map((dayObj, i) => {
-              const lunarInfo = getLunarDate(dayObj.date);
-              const isTodayDate = isToday(dayObj.date);
-              const isSelectedDate = isSelected(dayObj.date);
-              
-              // Chủ nhật là ngày đầu tiên (index 0)
-              const isSunday = i % 7 === 0;
-
-              return (
-                <button
-                  key={i}
-                  onClick={() => setSelectedDate(dayObj.date)}
-                  disabled={!dayObj.isCurrentMonth}
-                  className={`
-                    flex flex-col items-center justify-center h-16 sm:h-20 p-1 sm:p-2 rounded-xl transition-all duration-200
-                    ${!dayObj.isCurrentMonth 
-                        ? 'text-gray-300 pointer-events-none' 
-                        : 'hover:bg-purple-50 hover:scale-[1.02] active:scale-95 cursor-pointer'
-                    }
-                    ${isTodayDate 
-                        ? 'bg-purple-600 text-white shadow-lg shadow-purple-200' 
-                        : ''
-                    }
-                    ${isSelectedDate && !isTodayDate 
-                        ? 'bg-purple-100 border-2 border-purple-600 font-semibold' 
-                        : ''
-                    }
-                    ${!isTodayDate && isSunday && dayObj.isCurrentMonth 
-                        ? 'text-red-600' 
-                        : ''
-                    }
-                    ${dayObj.isCurrentMonth && !isSunday && !isTodayDate && !isSelectedDate
-                        ? 'text-gray-800' : ''
-                    }
-                  `}
-                >
-                  {/* Ngày Dương */}
-                  <div className={`text-base sm:text-lg font-bold ${isTodayDate ? 'text-white' : ''}`}>
-                    {dayObj.day}
-                  </div>
-                  {/* Ngày Âm */}
-                  {showLunar && dayObj.isCurrentMonth && (
-                    <div className={`text-xs mt-0.5 ${isTodayDate ? 'text-purple-200' : (isSunday ? 'text-red-400' : 'text-gray-500')}`}>
-                      {lunarInfo.day}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Today button */}
-          <div className="mt-8 text-center">
-            <button
-              onClick={goToToday}
-              className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition transform hover:scale-105 shadow-xl"
-            >
-              Hôm nay
-            </button>
-          </div>
+        {/* Footer/Ghi chú */}
+        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400">
+          <p>LƯU Ý: Chức năng Lịch Âm trong ứng dụng này chỉ là mô phỏng. Để có Lịch Vạn Niên chính xác, cần sử dụng các thuật toán hoặc API chuyển đổi lịch phức tạp hơn.</p>
+          <p className="mt-1 font-medium">Ngày hôm nay: {new Date().toLocaleDateString('vi-VN')}</p>
         </div>
       </div>
     </div>
   );
-};
+}
 
-
+export default App;
