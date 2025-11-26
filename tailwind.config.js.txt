@@ -1,17 +1,10 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
-    extend: {
-      fontFamily: {
-        // Sử dụng Inter như đã hướng dẫn
-        sans: ['Inter', 'sans-serif'],
-      },
-      // Thêm các keyframe hoặc màu sắc tùy chỉnh nếu cần
-    },
+    extend: {},
   },
   plugins: [],
 }
